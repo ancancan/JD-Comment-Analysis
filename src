@@ -1,1 +1,49 @@
+# src/crawler.py
+import time
+import json
+import pandas as pd
+from typing import List
+from utils import check_robots_txt
 
+data_list = []
+for i in range(10):
+    print("Crawling" + str(i) + "page")
+    #Construct the URL to visit
+    first = 'https://club.jd.com/comment/productPageComments.action?callback=fetchJSON_comment98&productId=100033910926&score=0&sortType=5&page='
+    last = '&pageSize=10&isShadowSku=0&fold=1'
+    url = first + str(i) + last
+    headers ={
+        'user-agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.108 Safari/537.36',
+        'referer': 'https://item.jd.com/100033910926.html',
+        }
+
+    data = requests.get(url,headers = headers).text
+    time.sleep(5)
+    
+    #To convert Str data into a dictionary, you must remove the corresponding symbols at the beginning and the end before you can convert it into a dictionary
+    jd=json.loads(data.lstrip('fetchJSON_comment98(').rstrip(');'))
+
+    com_list=jd['comments']
+    for a in com_list:
+        result=a['content']
+        data_list.append(result)
+
+df = pd.DataFrame()
+df["comment"] = data_list
+
+df.to_excel('comment.xlsx')
+
+# src/wordcloud_gen.py
+import jieba
+from wordcloud import WordCloud
+
+file=df['comment'].to_list()
+word=jieba.lcut(" ".join(file))
+txt=" ".join(word)
+exclude={'了','的','非常','很','是','外形外观'}
+w=wordcloud.WordCloud(
+    width = 1000, height = 700,
+    background_color = "white",
+    font_path = "msyh.ttc",stopwords=exclude)
+w.generate(txt)
+w.to_file("comment.png")
