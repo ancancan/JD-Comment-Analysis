@@ -46,4 +46,4 @@ w=wordcloud.WordCloud(
     background_color = "white",
     font_path = "msyh.ttc",stopwords=exclude)
 w.generate(txt)
-w.to_file("comment.png")
+w.to_file("wordcloud.png")
